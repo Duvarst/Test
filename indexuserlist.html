@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+	<title>Document</title>
+	<style>
+		.block_user {
+			display: flex;
+			margin: 15px 0px;
+			border: 1px solid #000;
+		}
+		.block_name {
+			display: flex;
+			flex-direction: column;
+			justify-content: space-around;
+		}
+		.btn {
+			background: grey;
+			margin: 10px 10px;
+			color: #fff;
+			padding: 5px 15px;
+			text-align: center;
+			border-radius: 3px;
+			cursor:pointer;
+		}
+		.btn_back {
+			margin-left: 0px ;
+		}
+		.userpage {
+			width: 100%;
+
+		}
+		.user_info {
+			margin-left: 10px;
+		}
+
+		table{
+			border:  1px solid #000;
+			width: 100%;
+			border-collapse: collapse;
+
+		}
+
+		td {
+			border:  1px solid #000;
+			padding: 10px 15px;
+		}
+		.inpfield {
+			width: 100%;
+			margin:  5px 0px;
+		}
+		input[type='text'] {
+			width: 100%;
+		}
+		img {
+			width: 30%;
+		}
+	</style>
+</head>
+<body>
+
+	<div id="app">
+		<div>Search 
+			<input type="text" v-model='search'>
+		</div>
+		<div
+			v-for='it, i in userList'
+			:key='i'
+		>
+		<image :src='it.avatar'></image>
+		<div class="user_info">
+			<div class="block_name">
+				<span>Name: {{it.first_name}} {{it.last_name}}</span>	
+			</div>
+			<div class="email">
+				<span>Email: {{it.email}}</span> 
+			</div>
+			<button class="btn"
+			@click='usersdata.splice(i, 1)'
+			>
+			<span>Delete</span>
+			</button>
+			<button class="btn"
+				@click='outputUserpage(i)'
+			>
+				<span>Detail</span>
+			</button>
+
+		</div>
+
+
+		</div>
+		<div class="btn"
+			@click='showUserAddWindow'
+		>Add to user</div>
+		
+		<div v-show='showwind'>
+			<div>
+				<window-add-user
+				v-for='it, i in userinfo'
+				:label='it.label'
+				@inpval='validPattern(i, $event)'
+				>
+				</window-add-userr>
+			</div>
+			<div>
+				<button  class='btn btnUserBlock' @click='AddUser'>Add</button>
+				<button class='btn btnUserBlock' @click='showwind = false'>Close</button>
+			</div>
+
+		</div>
+
+		<div class='block_user'
+			v-if='flag' 
+			v-for='it, i in usersdata'
+			:key='i'
+			>
+			<image :src='it.avatar'></image>
+			<div class="user_info">
+				<div class="block_name">
+					<span>Name: {{it.first_name}} {{it.last_name}}</span>	
+				</div>
+				<div class="email">
+					<span>Email: {{it.email}}</span> 
+				</div>
+				<button class="btn"
+				@click='usersdata.splice(i, 1)'
+				>
+				<span>Delete</span>
+				</button>
+				<button class="btn"
+					@click='outputUserpage(i)'
+				>
+					<span>Detail</span>
+				</button>
+
+			</div>
+
+
+
+	
+		</div>
+		<div class="userblock"
+		v-else
+		>
+			<table class="table table-bordered" 
+						
+			>
+				<tr v-for='val, name in userpagecopy'>
+					<td>{{name}}</td>
+					<td>{{val}}</td>
+				</tr>
+			</table>
+			<button class='btn btn_back'
+				@click='flag = true'
+				>
+				<span>Back</span>	
+			</button>
+		</div>
+
+
+	</div>
+	<script src="vue.js"></script>
+
+	<script>
+		
+const windowAddUser = {
+	template: `
+		<div class="inpfield">
+				<div class="form-group">
+					<label>
+						{{ label }}
+					</label>
+					<input type="text" v-model="vals" v-on:input="oninput">
+				</div>
+			</div>
+
+	`,
+    data: function() {
+		return {
+			vals: ''
+			 
+		}
+	},
+	props: {
+		label: String,
+		value: String,
+
+	},
+	methods : {
+
+		oninput(ev){
+
+			this.$emit('inpval', this.vals)
+
+		}
+
+
+
+	}
+
+}
+
+
+
+Vue.createApp({
+	components: {
+		windowAddUser
+	},
+	data: function() {
+		return {
+			usersdata: {},
+			userpagecopy: [],
+			flag: true,
+			showwind: false,
+			search: '',
+			userinfo: [
+				{	
+					label: 'email',
+					key: "email",
+					value: '',
+					pattern: /.+/
+				},
+				{
+					label: "First Name",
+					key: "first_name",
+					value: '',
+					pattern: /^[a-zA-Z ]{2,30}$/
+				},
+				{
+					label: "Last Name",
+					key: "last_name",
+					value: '',
+					
+					pattern: /^[a-zA-Z ]{2,30}$/
+				},
+				{
+					label: "Link to the avatar ",
+					key: "avatar",
+					value: '',
+					pattern: /.+/
+				}
+			]
+
+		}
+
+
+	},
+	methods: {
+		outputUserpage(ind) {
+			this.userpagecopy = this.usersdata[ind]
+			console.log(this.userpagecopy)
+			this.flag = false
+
+		},
+		showUserAddWindow() {
+			this.showwind = true
+		},
+		validPattern(i, val) {
+			let field = this.userinfo[i];
+			field.value = val;
+			field.valid = field.pattern.test(field.value)
+		},
+		AddUser() {
+			let objuser = {}
+			objuser.id = this.usersdata.length + 1
+			this.userinfo.forEach((el)=> {
+				objuser[el.key] = el.value
+			})
+			
+			this.usersdata.push(objuser)
+			console.log(this.usersdata)
+		}
+	},
+	computed: {
+		userList() {
+			let obj = this.usersdata;
+			let newArr = []
+			const serach = this.search.toLowerCase();
+
+			for(it in obj) {
+				el = obj[it]
+				if((el.first_name.toLowerCase().indexOf(serach) != -1) || (el.last_name.toLowerCase().indexOf(serach) != -1)){
+					newArr.push(el)
+				}
+			}
+			return newArr;
+		}
+	},
+	created() {
+		axios
+			.get("https://reqres.in/api/users?page=1")
+			.then(response => (this.usersdata = response.data.data))
+			.catch((er)=> console.log(er));
+
+
+	}
+}).mount('#app')
+
+	</script>
+</body>
+</html>

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+	<title>Document</title>
+	<style>
+		#app {
+			width: 90%;
+		}
+	 .bar_block {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    .current_value {
+        color: #000;
+        font-size: 15px;
+
+
+    }
+    .bar_value {
+        background: linear-gradient(90deg, rgba(249,5,5,1) 0%, rgba(135,255,12,1) 100%);
+        padding: 5px 0px;
+        align-items: center;
+        width: 90%;
+        margin: 10px 0px;
+        border-radius: 20px;
+    }
+    .value_select_block {
+        display: flex;
+        justify-content: space-around;
+
+    }
+    .values {
+        font-size: 15px;
+        margin: 0px 10px;
+        cursor: pointer;
+
+    }
+    .values:hover {
+        color: red;
+    }
+    .indicator {
+        background: #fff;
+        border-radius: 50%;
+        height: 20px;
+        width: 20px;
+        position: relative;
+        left: 0;
+        top: 0;
+        cursor: pointer;
+    }
+	</style>
+</head>
+<body>
+
+	<div id='app'>
+		
+			<range-bar 
+				:incomingvalue='33'
+				:inpval='fixedvals'
+				>
+
+			</range-bar>
+
+
+	</div>
+	<script src="vue.js"></script>
+
+	<script>
+		const rangeBar = {
+			template: `
+			    <div class="bar_block">
+			        <div class="current_value">{{value}}</div>
+			        <div class="bar_value"
+			           ref="bar_value"
+			        
+			            @mousemove="movement"
+			             @mouseleave="overEleme"
+			        >   
+			            <div class="indicator"
+			            ref='slider'
+			            :style='{left: sliderpos + "px" }'
+			            @mousedown.prevent='checked'
+			            @mouseup="overEleme"
+			           
+			            
+			            ></div>
+			        </div>
+			        <div class="value_select_block">
+			            <div class="values" 
+			            v-for='it, i in inpval'
+			            :key='i'
+			            @click='fixedVal(it)'
+			            >{{it}}%</div>
+
+			        </div>
+   				 </div>`,
+   				 props: {
+   				 	incomingvalue: Number,
+        			inpval: Array
+   				 },
+   				     data: function() {
+				        return {
+				            value: null,
+				            leftelempos: null,
+				            leftborder: null,
+				            rightborder: null,
+				            sliderpos: null,
+				            flag: false
+				        }
+     
+
+				    },
+				    methods: {
+				        checked(event) {
+				            
+				            this.flag = true;
+				          
+				        },
+				        movement(event) {
+				            if( this.flag == true) {
+				                let cursorpos = event.clientX - this.leftelempos
+				                let elemspos = event.clientX - this.leftelempos
+				                if(elemspos < this.rightborder) {
+				                    
+				                    this.sliderpos = elemspos
+				                   
+				                } 
+				                else {
+				                     this.sliderpos = this.rightborder
+				                }
+				                this.bar_value_left()
+
+				            }
+
+				         
+				        },
+				        
+				        fixedVal(it) {
+				               this.sliderpos = this.rightborder / 100 * it
+				                this.bar_value_left() 
+				           },
+				        overEleme(event) {
+				          this.flag = false
+				        },
+				        bar_value_left() {
+				             this.value =  (this.sliderpos / this.rightborder *100).toFixed(1) + '%'  
+				        },
+
+				    },
+				    mounted() {
+				        this.$nextTick(function() {
+				            
+				            this.rightborder = this.$refs.bar_value.offsetWidth - this.$refs.slider.offsetWidth
+				            this.value = this.incomingvalue.toFixed(1) + '%';
+				            this.sliderpos = this.incomingvalue
+				            this.leftelempos = this.$refs.slider.getBoundingClientRect().left
+
+				        })
+				    }
+
+				}
+
+		Vue.createApp({
+			components: {
+				rangeBar
+			},
+			data: function() {
+				return {
+					fixedvals: [10,20,30,40,50,90,100]
+				}
+			}
+
+		}).mount('#app')		
+
+	</script>
+</body>
+</html>
